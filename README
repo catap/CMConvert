@@ -1,0 +1,49 @@
+CMConvert - CacheMate import file converter
+
+This program is used to convert EasyGPS XML file formats (LOC and GPX) to 
+a format that can be installed onto a Palm OS device and imported into 
+CacheMate.  Options are also available to list waypoints contained in an 
+XML file, and selectively convert specified waypoints.
+
+CMConvert requires the Expat XML parser library.  This library is 
+available at:
+
+	http://expat.sourceforge.net/
+
+The following libraries are also required for ZIP file support.  This is 
+an optional feature, and will be disabled if these libraries cannot be 
+found.
+
+	zziplib		http://zziplib.sourceforge.net/
+	zlib		http://www.gzip.org/zlib/
+
+If ZIP file support is enabled, and such a file is given as an input file,
+CMConvert will search it (by extension) for a GPX file, and take its input
+from the first one it finds.  Subsequent GPX files or other files in the 
+ZIP file are ignored.
+
+For instructions on compiling and installation of CMConvert, please read 
+the INSTALL file, located in the top level distribution directory.  For 
+information on using the program, refer to the included man page.
+
+-----
+
+Copyright 2003-2004 Brian Smith
+
+This file is part of CMConvert.
+
+CMConvert is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
+
+CMConvert is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with CMConvert; see the file COPYING.  If not, write to
+the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA 02111-1307, USA.
+

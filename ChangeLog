@@ -1,0 +1,241 @@
+2004-09-12	Version 1.8.6
+
+	* Added "excl" command line parameter, for excluding waypoint IDs
+	  from the converted file
+
+2004-09-03
+
+	* Added preliminary support for GPX 1.1 (no Groundspeak 
+	  extensions, since they haven't been merged in yet)
+	* Added support for multiple URLs per waypoint (first URL that
+	  looks like a geocaching.com cache page is taken for the cache
+	  URL... any others are taken as added links for the generated
+	  HTML file)
+	* Move long waypoint descriptions to description field (instead of 
+	  name field) in the case of non-geocache GPX files without
+	  Groundspeak extensions, and copy waypoint name to name field in 
+	  those cases
+
+2004-04-27	Version 1.8.5
+
+	* Added use of file timestamp if GPX timestamp not detected
+
+2004-04-06	Version 1.8.4
+
+	* Added option to semi-intelligently strip quotes from cache names
+
+2004-03-21	Version 1.8.3
+
+	* Added proper duplicate resolution, for GPX files that contain 
+	  timestamps
+	* Added to documentation to explain just how duplicate record
+	  resolution works in CMConvert, partly to explain the
+	  "duplicates" that some people were seeing before
+
+2004-03-05	Version 1.8.2
+
+	* Added option to add cache active/inactive status to description
+	* Added filters for active/inactive caches
+	* Improved handling of incorrect list HTML (<li> tag with no
+	  matching </li>).  Implicit </li> now assumed when it is missing
+	  and another <li> tag is encountered.
+
+2004-02-18	Version 1.8.1
+
+	* Fixed Win32 problem with PDB file open call (another M$ 
+	  misinterpretation of something pretty standard)
+
+2004-02-05
+
+	* Fixed Win32 portability issue with path separator character
+
+2004-01-26	Version 1.8.0
+
+	* Added warning for geocache GPX files with empty descriptions
+
+2004-01-23
+
+	* Moved byte order test from runtime to configure script
+
+2004-01-22
+
+	* Added option to generate an HTML file with any link or image 
+	  URLs gleaned from HTML cache descriptions
+	* Added support for statute miles to radius filter
+
+2004-01-14
+
+	* Added files (minus 3rd-party libraries and includes) for Win32 
+	  build
+	* Cleaned up a few things where Visual C++ gave warnings 
+	  (unreferenced or double-defined variables)
+
+2004-01-10	Version 1.7.2
+
+	* Changed radius filter distance factors to be more accurate
+
+2004-01-07	Version 1.7.1
+
+	* Added an alert to show if descriptions were truncated for any
+	  record (disabled if quiet mode specified)
+
+2004-01-02	Version 1.7.0
+
+	* Added support for reading zipped GPX files (when both zlib and 
+	  zziplib are also installed)
+	* Fixed a crash in the XML parser if encoding name is missing
+
+2003-12-28	Version 1.6.3
+
+	* Added lookup table for redundant Unicode characters, to replace 
+	  those with high ASCII characters in the Palm OS standard fonts
+
+2003-12-27	Version 1.6.2
+
+	* Additional cleanup of UTF-8 decoder
+
+2003-12-22	Version 1.6.1
+
+	* Added proper UTF-8 decoding of text (since Expat apparently 
+	  doesn't do it)
+	* Removed stripping of high ASCII characters from XML input
+
+2003-12-17	Version 1.6.0
+
+	* Added some more portability checks with autoconf (so, for one,
+	  we won't try using the functions needed to reformat dates if 
+	  they aren't available and, instead, will just kill that feature)
+	* Added --with-expat-dir to configure script, to allow specifying
+	  where Expat is installed if it isn't anywhere in the normal 
+	  search paths
+
+2003-12-16
+
+	* Added radius filters, for distance from a set of coordinates or 
+	  waypoint ID
+	* Dates are now reformatted to match user locale settings
+
+2003-12-15
+
+	* Added -t option to auto-include items taken/left notes template
+	* Added HTML tag stripping for cache hints and logs
+
+2003-10-17	Version 1.5.0
+
+	* Database name based on output file name
+	* Slight improvements to HTML whitespace condensing
+
+2003-10-15
+
+	* Added better handling for table-related tags
+
+2003-10-09	Version 1.4.2
+
+	* Fixed bug in cleaning of invalid XML characters when there are
+	  two or more of them in a row
+	* Added reminder about lack of cache information when importing
+	  Geocaching.com LOC files
+
+2003-09-27	Version 1.4.1
+
+	* Fixed getopt.h compile error with Mac OS X
+	* Updated man page to be more internationally friendly with the 
+	  GPX "state" field, which also handles province names for other 
+	  countries
+
+2003-09-25	Version 1.4.0
+
+	* Added -q option (quiet mode)
+
+2003-09-24
+
+	* Added "[truncated]" hint if description/log text had to be 
+	  truncated
+	* Added option to prevent encoding of hints
+	* Added -v option to display version and copyright
+	* Added the ability to handle multiple input files
+
+2003-09-23
+
+	* Added filters for found, not-found, country, state, owner,
+	  container, type, symbol and travel bugs, most of which are only 
+	  applicable to Geocaching.com GPX files
+	* The -l option now only lists caches that pass the filters and 
+	  waypoint selection
+
+2003-09-03
+
+	* Added stripping of invalid XML characters from input
+
+2003-08-29	Version 1.3.0
+
+	* Added travel bug indicator to waypoint listing
+
+2003-08-28
+
+	* Added option for longer description (requires CacheMate 2.1 or 
+	  later)
+
+2003-08-24	Version 1.2.1
+
+	* Trimming of whitespace from cache name (throws off sorting)
+	* Added check for empty cache name, replacing it with "Geocache" 
+	  (a la Geocaching.com)
+
+2003-08-04	Version 1.2.0
+
+	* Added importing of coordinates from cache logs
+
+2003-08-01
+
+	* Added proper support for <pre></pre> tags in HTML descriptions
+
+2003-07-25
+
+	* Added options to import cache logs and travel bug names from 
+	  Geocaching.com GPX files
+
+2003-07-21	Version 1.1.1
+
+	* Corrected byte order ignorance in PDB file generation
+
+2003-05-02	Version 1.1.0
+
+	* Added options to include cache owner, date, container type
+	  and location (state/country) from Geocaching.com GPX files in 
+	  description field.
+
+2003-04-30
+
+	* Improved handling of list tags in HTML descriptions
+	* Improved stripping of extraneous whitespace in descriptions
+
+2003-04-20	Version 1.0.1
+
+	* Fixed handling of GPX files without Groundspeak extensions
+
+2003-04-17	Version 1.0.0
+
+	* Initial version
+
+-----
+
+Copyright 2003-2004 Brian Smith
+
+This file is part of CMConvert.
+
+CMConvert is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
+
+CMConvert is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with CMConvert; see the file COPYING.  If not, write to
+the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA 02111-1307, USA.
+

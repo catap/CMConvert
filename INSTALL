@@ -1,0 +1,83 @@
+CMConvert - CacheMate import file converter
+
+CMConvert requires the Expat XML parser library.  This library is 
+available at:
+
+	http://expat.sourceforge.net/
+
+CMConvert also has the ability to read GPX files from within ZIP files (as
+they are received from Geocaching.com pocket queries).  If you want this
+functionality, the following libraries must also be installed:
+
+	zziplib		http://zziplib.sourceforge.net/
+	zlib		http://www.gzip.org/zlib/
+
+To build CMConvert, you first run the configuration shell script in the 
+top level distribution directory:
+
+	./configure
+
+If you are building CMConvert under Mac OS X, use the following command 
+line to put the manual page in the proper place:
+
+	./configure --mandir=/usr/local/share/man
+
+If the Expat library cannot be found, but you know it is installed, you
+may use a --with-expat-dir parameter with the configure script to tell it
+where to look.  This can happen particularly when Expat is installed as
+part of a package.  An example might be:
+
+	./configure --with-expat-dir=/opt/expat
+
+That option adds /opt/expat/include to the search list for include files, 
+and /opt/expat/lib to the library search list.  Directories for certain 
+Mac OS X packages that include Expat are as follows:
+
+	Darwin Ports	/opt/local
+	Fink		/sw
+
+Similar options are available for zziplib and zlib.
+
+After the configure script has completed, run the following commands to
+build and install the software (run the second command as root, if you are
+installing in a system directory):
+
+	make
+	make install
+
+There are many options which you may provide to configure (which you can
+discover by running configure with the --help option).  But the one of
+most interest is the one that sets the installation directory. By default,
+the configure script will set things up to install cmconvert into
+/usr/local/bin and the man page into /usr/local/man/man1.  If, for
+example, you'd prefer to install into /usr/bin and /usr/man/man1, you can
+tell configure about that with:
+
+	./configure --prefix=/usr
+
+After running the configuration script, run "make" to build the program,
+and "make install" to install the files into their proper locations.  You
+will need write permission to the install destinations for installation to
+work.
+
+-----
+
+Copyright 2003-2004 Brian Smith
+
+This file is part of CMConvert.
+
+CMConvert is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
+
+CMConvert is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with CMConvert; see the file COPYING.  If not, write to
+the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA 02111-1307, USA.
+

@@ -1,0 +1,223 @@
+.\"(c) Copyright 2003-2004 by Brian Smith
+.\"All rights reserved.
+.\"
+.TH CMCONVERT 1 "12 September 2004"
+.SH NAME
+cmconvert \- CacheMate waypoint file converter
+.SH SYNOPSIS
+.B cmconvert
+[-a] [-A] [-b] [-B] [-C] [-d] [-D] [-f] [-F] [-h] [-H] [-l] [-L]
+[-N max_log_count] [-o output_file] [-O] [-q] [-s] [-S] [-t] [-T] [-v] 
+[--owner=owner_name] [--country=country] [--state=state] 
+[--cont=container] [--sym=symbol] [--type=cache_type]
+[--excl=waypoint_list] [--radius=distance,lat,lon]  
+[--radius=distance,waypoint] input_file1[,input_file2...] [waypoint ...]
+.SH DESCRIPTION
+.B cmconvert
+is a file converter, which takes one or more EasyGPS LOC or GPX XML files
+as input and outputs a Palm database file that CacheMate (a geocaching
+database for Palm OS) can import.  GPX file extensions specific to
+Geocaching.com are converted as well.
+.LP
+Selection of waypoints to convert (and later import) is possible by
+specifying the waypoint names on the command line after the input file.  
+Waypoints contained in the input file may also be listed along with
+descriptive information.  Selection by certain criteria is also possible,
+using the filtering options documented below.
+.SH OPTIONS
+.TP
+.B \-B
+Includes travel bug names from Geocaching.com GPX file in description 
+field.
+.TP
+.B \-C
+Includes container type from Geocaching.com GPX file in description field.
+.TP
+.B \-d
+Changes the maximum description length from 3090 to 8192 bytes, for 
+CacheMate 2.1 or later (may cause problems with earlier versions).
+.TP
+.B \-D
+Includes date information from GPX file in description field, if 
+available.
+.TP
+.B \-h
+Generates an HTML file, name based on the output PDB file name, which
+contains URLs for any links and images found in HTML descriptions for
+records that are converted.  The file will contain links to the cache page
+and any contained links for caches that have them (plain text descriptions
+and HTML descriptions that are just text are omitted).  This option only
+has any meaning when converting GPX files from Geocaching.com.
+.TP
+.B \-H
+Prevents the encoding of hint text from Geocaching.com GPX files.
+.TP
+.B \-l
+Lists waypoints names from input file, along with description, terrain and
+difficulty information if available.  If any filters are in place or
+waypoint names are specified, only those that are selected will be listed.
+.TP
+.B \-L
+Includes cache location (state/province and/or country) from
+Geocaching.com GPX file in description field.
+.TP
+.BI \-N " max_log_count"
+If specified with a count of at least 1, cache logs from a Geocaching.com
+GPX file will be imported, until one of three per-cache limits is reached:
+specified log count, number of logs in the record, or 8k of log
+information.  Each log entry is trimmed to 3k in size, if it is larger
+than that.
+.TP
+.BI \-o " output_file"
+Specifies the file to which \fBcmconvert\fP writes the resulting Palm
+database file.  The default name is based on the first input file name, 
+with a
+.I .pdb
+extension.
+.TP
+.B \-O
+Includes cache owner from Geocaching.com GPX file in description field.
+.TP
+.B \-q
+Suppresses all output except error messages.
+.TP
+.B \-s
+Causes the parser to semi-intelligently strip quotes from cache names.
+.TP
+.B \-S
+Includes cache status (active/inactive) from Geocaching.com GPX file in 
+description field.
+.TP
+.B \-t
+Adds items taken/left template to log notes field for each converted 
+record.
+.TP
+.B \-T
+Force old (pre-1.8.3) method of dealing with duplicate records (see 
+below).
+.TP
+.B \-v
+Displays version and copyright notice.
+.SH DUPLICATE RECORD RESOLUTION
+Versions of CMConvert older than 1.8.3 compared entire converted records 
+to determine whether or not records from different input files were 
+duplicates of each other.  If there were differences in records with 
+identical waypoint names, both records would be included and would then 
+appear to be duplicates.
+.LP
+The current behavior is to use file timestamps and compare waypoint names
+between old and new records.  If a match is found, the old record will be
+updated if the new record comes from a file with a later timestamp.  If an
+input file is in GPX format and contains a file-level timestamp, that will
+be used.  Otherwise, the last-modified time of the file is used.
+.SH FILTERING OPTIONS
+The following options may be used to select waypoints for conversion based 
+on certain critera.  Most of the options only apply if a Geocaching.com 
+GPX file is being converted, and may otherwise result in no waypoints 
+being converted.
+.LP
+Filters that use an argument, except for radius filters, do a
+case-insensitive search of the corresponding field for a match, to make
+them forgiving of incorrect case and allow for partial search strings.  
+For example, a cache type filter of "event" will match the text "Event
+Cache" from the GPX file.  Multiple search strings are also possible, when
+separated by colons (:).
+.LP
+All filtering options, including waypoints specified on the command line,
+are additive in their effects.  For example, a search combining the
+"found" and "not found" filters on a Geocaching.com pocket query will
+result in no records being converted.
+.TP
+.B \-a
+Selects only caches that are active, according to information in 
+Geocaching.com GPX files.  If this information is not present in the input 
+file (as with LOC files), the cache is assumed to be active.
+.TP
+.B \-A
+Selects only caches that are inactive, using the same criteria as the -a 
+filter option.
+.TP
+.B \-b
+Selects only caches that have travel bugs.
+.TP
+.B \-f
+Selects only caches that have been found (symbol name = "Geocache Found").
+.TP
+.B \-F
+Selects only caches that have not been found (symbol name = "Geocache").
+.TP
+.BI \--cont= container_type
+Filters caches based on container type (regular, micro, etc.).
+.TP
+.BI \--country= country
+Filters caches based on the country where they are located.
+.TP
+.BI \--state= state
+Filters caches based on the state or province where they are located.
+.TP
+.BI \--owner= owner_name
+Filters caches based on the owner's name.
+.TP
+.BI \--type= type_name
+Filters caches based on cache type (traditional, event, virtual, etc.).
+.TP
+.BI \--sym= symbol_name
+Filters waypoints based on symbol name.
+.TP
+.BI \--radius= distance,lat,lon
+Filters waypoints based on distance from a certain set of coordinates.  
+Distance is a number of kilometers (n.nnK, n.nnKM), statute miles (n.nnMI)  
+or nautical miles (n.nnM, n.nnNM).  If no unit is specified, nautical
+miles are assumed by default.  The latitude and longitude are expressed as
+decimal degrees.
+.TP
+.BI \--radius= distance,waypoint
+Filters waypoints based on distance from a given waypoint.  Distance is 
+expressed in the same way as the more explicit radius filter.
+.TP
+.BI \--excl= waypoint_list
+Allows an exclusion filter on waypoint names.
+.SH EXAMPLES
+The following are various examples of cmconvert with different filtering 
+options.
+.LP
+To list all of the caches that you haven't found, that contain travel bugs 
+and are owned by bartacus or honeychile, you might do the following:
+.LP
+.RS +4
+cmconvert -lFb --owner=honeychile:bartacus caches.gpx
+.RE
+.LP
+To list all caches located within 5 miles of the coordinates N36/W80, you 
+would enter:
+.LP
+.RS +4
+cmconvert -l --radius=5M,36,-80 caches.gpx
+.RE
+.LP
+A simpler example, this command would list all of the micro caches in the
+input file:
+.LP
+.RS +4
+cmconvert -l --cont=micro caches.gpx
+.RE
+.LP
+This command converts the caches listed above into a PDB file
+(caches.pdb) to import into CacheMate:
+.LP
+.RS +4
+cmconvert --cont=micro caches.gpx
+.RE
+.LP
+The following commands merges two GPX files into a single import file 
+(caches.pdb):
+.LP
+.RS +4
+cmconvert caches.gpx,benchmarks.gpx
+.RE
+.SH UNRESTRICTIONS
+\fIcmconvert\fP is free; anyone may redistribute copies of it to anyone
+under the terms stated in the GNU General Public License, a copy of which
+accompanies each copy of \fIcmconvert\fP.
+.SH AUTHOR
+Brian Smith <brian@smittyware.com>
