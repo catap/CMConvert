@@ -1,5 +1,5 @@
 /*
-    Copyright 2004 Brian Smith (brian@smittyware.com)
+    Copyright 2004-2005 Brian Smith (brian@smittyware.com)
     This file is part of CMConvert.
 
     CMConvert is free software; you can redistribute it and/or modify
@@ -23,6 +23,7 @@
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned long uint32_t;
+typedef long int32_t;
 
 typedef unsigned long u_long;
 typedef unsigned char u_char;

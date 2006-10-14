@@ -1,5 +1,5 @@
 /*
-    Copyright 2004 Brian Smith (brian@smittyware.com)
+    Copyright 2004-2005 Brian Smith (brian@smittyware.com)
     This file is part of CMConvert.
     
     CMConvert is free software; you can redistribute it and/or modify   
@@ -54,16 +54,15 @@ int CHTMLWriter::WriteCacheRecord(CWPData *pRec)
 		m_fp = fopen(m_sPath.c_str(), "w");
 		if (!m_fp)
 		{
-			printf("Error writing links HTML file for writing.\n");
+			printf("Error opening links HTML file for writing.\n");
 			return 0;
 		}
 
 		fprintf(m_fp, "<html><body>\n");
-		fprintf(m_fp, "<dl>\n");
 	}
 
 	int bWptURL = !pRec->m_sURL.empty();
-	fprintf(m_fp, "<dt><b>%s - ", pRec->m_sWaypoint.c_str());
+	fprintf(m_fp, "<h3><b>%s - ", pRec->m_sWaypoint.c_str());
 	if (bWptURL)
 	{
 		fprintf(m_fp, "<a href=\"%s\" target=\"_blank\">",
@@ -72,7 +71,7 @@ int CHTMLWriter::WriteCacheRecord(CWPData *pRec)
 	fprintf(m_fp, "%s", pRec->m_sDesc.c_str());
 	if (bWptURL)
 		fprintf(m_fp, "</a>");
-	fprintf(m_fp, "</b></dt>\n");
+	fprintf(m_fp, "</b></h3>\n<ul>\n");
 
 	string sURL, sRemain = pRec->m_sLinks;
 	int nIndex = sRemain.find('\001');
@@ -81,14 +80,14 @@ int CHTMLWriter::WriteCacheRecord(CWPData *pRec)
 		sURL = sRemain.substr(0, nIndex);
 		sRemain = sRemain.substr(nIndex+1);
 
-		fprintf(m_fp, "<dd><a href=\"%s\" target=\"_blank\">",
+		fprintf(m_fp, "<li><a href=\"%s\" target=\"_blank\">",
 			sURL.c_str());
-		fprintf(m_fp, "%s</a></dd>\n", sURL.c_str());
+		fprintf(m_fp, "%s</a></li>\n", sURL.c_str());
 
 		nIndex = sRemain.find('\001');
 	}
 
-	fprintf(m_fp, "<dd>&nbsp;</dd>\n");
+	fprintf(m_fp, "</ul>\n");
 	return 1;
 }
 
@@ -96,22 +95,47 @@ void CHTMLWriter::WriteFile(string sPdbPath, int bQuiet)
 {
 	SetFileName(sPdbPath);
 
+	typedef vector<string> StringVec;
+	StringVec wps;
+
 	WPList::iterator iter = m_pList->m_List.begin();
 	while (iter != m_pList->m_List.end())
 	{
 		CWPData *pRec = *iter;
 		if (pRec->m_bConvert && !pRec->m_sLinks.empty())
-		{
-			if (!WriteCacheRecord(pRec))
-				return;
-		}
+			wps.push_back(pRec->m_sWaypoint);
 
 		iter++;
 	}
 
+	sort(wps.begin(), wps.end());
+
+	StringVec::iterator iter2 = wps.begin();
+	while (iter2 != wps.end())
+	{
+		string sCur = *iter2;
+
+		iter = m_pList->m_List.begin();
+		while (iter != m_pList->m_List.end())
+		{
+			CWPData *pRec = *iter;
+			if (pRec->m_sWaypoint == sCur)
+			{
+				if (!WriteCacheRecord(pRec))
+					return;
+
+				break;
+			}
+
+			iter++;
+		}
+
+		iter2++;
+	}
+
 	if (m_fp)
 	{
-		fprintf(m_fp, "</dl>\n</body></html>\n");
+		fprintf(m_fp, "</body></html>\n");
 		fclose(m_fp);
 		m_fp = NULL;
 

@@ -1,5 +1,5 @@
 /*
-    Copyright 2003-2004 Brian Smith (brian@smittyware.com)
+    Copyright 2003-2006 Brian Smith (brian@smittyware.com)
     This file is part of CMConvert.
     
     CMConvert is free software; you can redistribute it and/or modify   
@@ -24,6 +24,7 @@
 #include "getopt.h"
 #include "htmlwriter.h"
 #include "util.h"
+#include "reader.h"
 
 #ifdef HAVE_LIBM
 #include <math.h>
@@ -48,6 +49,28 @@ static int bLocWarned, bEmptyWarned, bStripQuotes;
 static string sStateFilt, sCountryFilt, sOwnerFilt, sTypeFilt, sSymFilt,
 	sContFilt, sRadiusFilt, sExcludeFilt;
 
+// String filter options...
+static struct option long_options[] = {
+	{ "state", 1, 0, 0 },
+	{ "country", 1, 0, 0 },
+	{ "cont", 1, 0, 0 },
+	{ "type", 1, 0, 0 },
+	{ "owner", 1, 0, 0 },
+	{ "sym", 1, 0, 0 },
+	{ "excl", 1, 0, 0 },
+	{ "filter", 1, 0, 0 },
+#ifdef HAVE_LIBM
+	{ "radius", 1, 0, 0 },
+#endif
+	{ 0, 0, 0, 0 }
+};
+static string* filter_str[] = { &sStateFilt, &sCountryFilt, &sContFilt, 
+	&sTypeFilt, &sOwnerFilt, &sSymFilt, &sExcludeFilt, NULL,
+#ifdef HAVE_LIBM
+	&sRadiusFilt
+#endif
+};
+
 string GetDefaultOutputFile(string sPath)
 {
 	int nSlash, nDot, nComma;
@@ -68,6 +91,81 @@ string GetDefaultOutputFile(string sPath)
 		sOutPath = sPath;
 
 	return (sOutPath + ".pdb");
+}
+
+void AddFilterString(int nIndex, string sStr)
+{
+	bool bRad = (filter_str[nIndex] == &sRadiusFilt);
+
+	string &rStr = *(filter_str[nIndex]);
+	if (!rStr.empty())
+	{
+		if (bRad)
+			rStr.erase();
+		else
+			rStr += ":";
+	}
+
+	rStr += sStr;
+}
+
+int ReadFilterFile(string sFile)
+{
+	int bSuccess = 0;
+
+	FILE *fp = fopen(sFile.c_str(), "r");
+	if (fp)
+	{
+		int nCount = 0;
+		char buf[512];
+		while (fgets(buf, 512, fp))
+		{
+			string sLine, sName;
+			sLine = buf;
+
+			int nIndex = sLine.find('=');
+			if (nIndex == string::npos)
+				continue;
+			sName = sLine.substr(0, nIndex);
+			sLine = sLine.substr(nIndex+1);
+
+			CUtil::StripWhitespace(sName);
+			CUtil::StripWhitespace(sLine);
+			CUtil::LowercaseString(sName);
+
+			nIndex = 0;
+			struct option *pOpt = long_options;
+			while (pOpt->name)
+			{
+				if (sName == pOpt->name)
+					break;
+
+				pOpt++;
+				nIndex++;
+			}
+
+			if (!pOpt->name)
+				continue; // No valid option found
+			if (nIndex == 7)
+				continue; // Recursion?  Hell no...
+
+			AddFilterString(nIndex, sLine);
+			nCount++;
+		}
+
+		if (!bQuietMode)
+		{
+			printf("%d valid filter%s read from: %s\n", nCount, 
+				(nCount == 1) ? "" : "s", sFile.c_str());
+		}
+
+		fclose(fp);
+		bSuccess = 1;
+	}
+	else
+		printf("Can't open filter file: %s\n", sFile.c_str());
+
+	return bSuccess;
 }
 
 int ParseCommandLine(int argc, char **argv)
@@ -119,26 +217,6 @@ int ParseCommandLine(int argc, char **argv)
 	while (1)
 	{
 		int option_index = 0;
-		static struct option long_options[] = {
-			{ "state", 1, 0, 0 },
-			{ "country", 1, 0, 0 },
-			{ "cont", 1, 0, 0 },
-			{ "type", 1, 0, 0 },
-			{ "owner", 1, 0, 0 },
-			{ "sym", 1, 0, 0 },
-			{ "excl", 1, 0, 0 },
-#ifdef HAVE_LIBM
-			{ "radius", 1, 0, 0 },
-#endif
-			{ 0, 0, 0, 0 }
-		};
-		static string* filter_str[] = { &sStateFilt, 
-			&sCountryFilt, &sContFilt, &sTypeFilt, 
-			&sOwnerFilt, &sSymFilt, &sExcludeFilt,
-#ifdef HAVE_LIBM
-			&sRadiusFilt
-#endif
-		};
 
 		c = getopt_long(argc, argv, "aAbBCdDfFhHlLN:o:OqsStTv",
 			long_options, &option_index);
@@ -148,10 +226,14 @@ int ParseCommandLine(int argc, char **argv)
 		switch (c)
 		{
 		case 0:
+			if (option_index == 7)
 			{
-				*(filter_str[option_index]) = optarg;
-				break;
+				if (!ReadFilterFile(optarg))
+					errflg = 1;
 			}
+			else
+				AddFilterString(option_index, optarg);
+			break;
 		case 'a':	bFiltActive = 1; break;
 		case 'A':	bFiltInactive = 1; break;
 		case 'b':	bFilterBugs = 1; break;
@@ -223,7 +305,7 @@ int PrintVersion()
 #if HAVE_LIBZ && HAVE_LIBZZIP
 		"+zip"
 #endif
-		" -- Copyright (C) 2003-2004 Brian Smith\n");
+		" -- Copyright (C) 2003-2006 Brian Smith\n");
 	return 0;
 }
 
@@ -236,7 +318,8 @@ int PrintUsage(char *szExe)
 #ifdef HAVE_LIBM
 	"\t[--radius=distance,lat,lon] [--radius=distance,waypoint]\n"
 #endif
-	"\t[--excl=waypoint_list] input_file1[,input_file2...] [waypoint ...]\n",
+	"\t[--excl=waypoint_list] [--filter=file] input_file1[,input_file2...]\n"
+	"\t[waypoint ...]\n",
 		szExe);
 
 	return 2;
@@ -385,45 +468,70 @@ int check_radius_filter(double dLat1, double dLon1, double dLat2,
 
 int parse_xml_file(string sFile, CWPList *pList)
 {
-	CXMLParser parser;
-	CWPList wplist;
-	parser.m_pList = &wplist;
-	parser.m_bContainer = bContainer;
-	parser.m_bLocation = bLocation;
-	parser.m_bOwner = bOwner;
-	parser.m_bDate = bDate;
-	parser.m_bShowBugs = bShowBugs;
-	parser.m_bDecodeHints = bDecodeHints;
-	parser.m_nMaxLogs = nMaxLogs;
-	parser.m_nMaxDesc = nMaxDesc;
-	parser.m_bLogTemplate = bLogTemplate;
-	parser.m_bQuiet = bQuietMode;
-	parser.m_bCacheStatus = bCacheStatus;
-	parser.m_bStripNameQuotes = bStripQuotes;
-	if (!parser.ParseFile(sFile))
+	IXMLReader *pReader;
+
+#if HAVE_LIBZ && HAVE_LIBZZIP
+	string sExt = sFile.substr(sFile.size() - 4);
+	CUtil::LowercaseString(sExt);
+	if (sExt == ".zip")
+		pReader = new CZIPReader;
+	else
+#endif
+		pReader = new CXMLReader;
+
+	pReader->m_bQuiet = bQuietMode;
+	if (!pReader->Open(sFile.c_str()))
+	{
+		printf("Couldn't open file: %s\n", sFile.c_str());
 		return 0;
-
-	if (!bQuietMode && parser.m_bLocWarning && !bLocWarned)
-	{
-		printf(
-	"You are converting one or more Geocaching.com LOC files.  Please be\n"
-	"aware that these files only contain the most basic information about\n"
-	"caches.  See the CacheMate FAQ for more details.\n");
-		bLocWarned = 1;
 	}
 
-	if (!bQuietMode && parser.m_bEmptyDesc && !bEmptyWarned)
+	do
 	{
-		printf(
-	"WARNING:  This looks like a geocache GPX file, but is missing\n"
-	"cache descriptions and other info.  If this file was originally a\n"
-	"Geocaching.com pocket query, try using the original file.\n");
-		bEmptyWarned = 1;
-	}
+		CXMLParser parser;
+		CWPList wplist;
+		parser.m_pList = &wplist;
+		parser.m_bContainer = bContainer;
+		parser.m_bLocation = bLocation;
+		parser.m_bOwner = bOwner;
+		parser.m_bDate = bDate;
+		parser.m_bShowBugs = bShowBugs;
+		parser.m_bDecodeHints = bDecodeHints;
+		parser.m_nMaxLogs = nMaxLogs;
+		parser.m_nMaxDesc = nMaxDesc;
+		parser.m_bLogTemplate = bLogTemplate;
+		parser.m_bQuiet = bQuietMode;
+		parser.m_bCacheStatus = bCacheStatus;
+		parser.m_bStripNameQuotes = bStripQuotes;
+		if (!parser.ParseFile(sFile, pReader))
+			continue;
 
-	string ts = bUseTS ? parser.m_sFileTS : "";
+		if (!bQuietMode && parser.m_bLocWarning && !bLocWarned)
+		{
+			printf(
+		"You are converting one or more Geocaching.com LOC files.  Please be\n"
+		"aware that these files only contain the most basic information about\n"
+		"caches.  See the CacheMate FAQ for more details.\n");
+			bLocWarned = 1;
+		}
 
-	pList->AddList(&wplist, ts);
+		if (!bQuietMode && parser.m_bEmptyDesc && !bEmptyWarned)
+		{
+			printf(
+		"WARNING:  This looks like a geocache GPX file, but is missing\n"
+		"cache descriptions and other info.  If this file was originally a\n"
+		"Geocaching.com pocket query, try using the original file.\n");
+			bEmptyWarned = 1;
+		}
+
+		string ts = bUseTS ? parser.m_sFileTS : "";
+
+		pList->AddList(&wplist, ts);
+	} while (pReader->NextFile());
+
+	pReader->Close();
+	delete pReader;
+
 	return 1;
 }
 
@@ -439,7 +547,10 @@ int main(int argc, char **argv)
 	// Parse command line
 
 	if (!ParseCommandLine(argc, argv))
+	{
+		PrintVersion();
 		return PrintUsage(argv[0]);
+	}
 	if (bShowVer)
 		return PrintVersion();
 

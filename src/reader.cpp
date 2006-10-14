@@ -1,5 +1,5 @@
 /*
-    Copyright 2004 Brian Smith (brian@smittyware.com)
+    Copyright 2004-2006 Brian Smith (brian@smittyware.com)
     This file is part of CMConvert.
     
     CMConvert is free software; you can redistribute it and/or modify   
@@ -40,6 +40,11 @@ int CXMLReader::Read(char *pBuf, int nLen)
 	return read(m_fp, pBuf, nLen);
 }
 
+int CXMLReader::NextFile()
+{
+	return 0;
+}
+
 void CXMLReader::Close()
 {
 	close(m_fp);
@@ -48,12 +53,32 @@ void CXMLReader::Close()
 #if HAVE_LIBZ && HAVE_LIBZZIP
 // Zipped file reader
 
-// Open zip file and look for first GPX file (if any)
 int CZIPReader::Open(const char *szName)
 {
 	m_pDir = zzip_dir_open(szName, 0);
 	if (!m_pDir)
 		return 0;
+
+	m_pFile = NULL;
+	m_sFile = szName;
+
+	if (!NextFile())
+	{
+		printf("Couldn't find GPX file in %s\n", szName);
+		zzip_dir_close(m_pDir);
+		return 0;
+	}
+
+	return 1;
+}
+
+int CZIPReader::NextFile()
+{
+	if (m_pFile)
+	{
+		zzip_file_close(m_pFile);
+		m_pFile = NULL;
+	}
 
 	int bFound = 0;
 	ZZIP_DIRENT dirent;
@@ -75,23 +100,16 @@ int CZIPReader::Open(const char *szName)
 	}
 
 	if (!bFound)
-	{
-		printf("Couldn't find GPX file in %s\n", szName);
-		zzip_dir_close(m_pDir);
 		return 0;
-	}
 
 	if (!m_bQuiet)
-		printf("Found \"%s\" in ZIP file: %s\n", dirent.d_name, szName);
-
-	m_pFile = zzip_file_open(m_pDir, dirent.d_name, 0);
-	if (!m_pFile)
 	{
-		zzip_dir_close(m_pDir);
-		return 0;
+		printf("Found \"%s\" in ZIP file: %s\n", dirent.d_name,
+			m_sFile.c_str());
 	}
 
-	return 1;
+	m_pFile = zzip_file_open(m_pDir, dirent.d_name, 0);
+	return (m_pFile != NULL);
 }
 
 int CZIPReader::Read(char *pBuf, int nLen)
@@ -101,7 +119,9 @@ int CZIPReader::Read(char *pBuf, int nLen)
 
 void CZIPReader::Close()
 {
-	zzip_file_close(m_pFile);
+	if (m_pFile)
+		zzip_file_close(m_pFile);
+
 	zzip_dir_close(m_pDir);
 }
 

@@ -1,5 +1,5 @@
 /*
-    Copyright 2003-2004 Brian Smith (brian@smittyware.com)
+    Copyright 2003-2006 Brian Smith (brian@smittyware.com)
     This file is part of CMConvert.
     
     CMConvert is free software; you can redistribute it and/or modify   
@@ -29,8 +29,8 @@ extern "C" {
 // Flags for attributes
 #define FF_COORD_ATTR	1	// Coordinates are lat/lon attributes
 #define FF_WAYPOINT_ID	2	// Waypoint name is "id" attribute
-#define FF_LONG_HTML	4	// HTML flag of long description
-#define FF_SHRT_HTML	8	// HTML flag of short description
+#define FF_CHECK_HTML	4	// HTML flag of long description
+#define FF_FORCE_HTML	8	// Trust us... it's HTML :-)
 #define FF_REC_ELEM	16	// Base element of item record
 #define FF_LOG_ELEM	32	// Base element of cache log
 #define FF_LOG_ENC	64	// Encoded attribute of cache log
@@ -41,46 +41,102 @@ extern "C" {
 #define FF_TIMESTAMP	2048	// GPX file timestamp
 #define FF_HREF_ATTR	4096	// GPX 1.1 link (URL in href attr)
 #define FF_WPT_URL	8192	// Waypoint URL (GPX 1.0)
+#define FF_TERRA_SIZES	16384	// Map TerraCaching size number to string
+#define FF_GPX_VERSION	32768	// GPX version attribute
 
-// XPath to field mapping
-typedef struct
-{
-	char *szName;
-	int nField;
-	int nFlags;
-} stPathMap;
-static stPathMap s_PathMap[] = {
-  // GPX 1.1
-  { "/gpx/metadata/time", -1, FF_TIMESTAMP },
-  { "/gpx/wpt/link", -1, FF_HREF_ATTR },
-  // GPX 1.0 / Groundspeak 1.0
+// Geocaching.com.au GPX extensions
+static stPathMap s_AUMap[] = {
+  { "", -1, FF_CACHE_STATUS },
+  { "/name", FLD_NAME2, 0 },
+  { "/type", FLD_TYPE2, 0 },
+  { "/owner", FLD_OWNER, 0 },
+  { "/container", FLD_CONTAINER, 0 },
+  { "/locale", FLD_LOCALE, 0 },
+  { "/state", FLD_STATE, 0 },
+  { "/country", FLD_COUNTRY, 0 },
+  { "/difficulty", FLD_DIFFICULTY, 0 },
+  { "/terrain", FLD_TERRAIN, 0 },
+  { "/summary", FLD_SHRT_DESC, FF_FORCE_HTML },
+  { "/description", FLD_LONG_DESC, FF_FORCE_HTML },
+  { "/hints", FLD_HINTS, 0 },
+  { "/logs/log", -1, FF_LOG_ELEM },
+  { "/logs/log/time", FLD_LOG_DATE, 0 },
+  { "/logs/log/type", FLD_LOG_TYPE, 0 },
+  { "/logs/log/geocacher", FLD_LOG_FINDER, 0 },
+  { "/logs/log/text", FLD_LOG_TEXT, 0 },
+  { "/logs/log/coords", -1, FF_COORD_LOG },
+  { NULL, 0, 0 }
+};
+
+// Groundspeak GPX extensions
+static stPathMap s_GSMap[] = {
+  { "", -1, FF_CACHE_STATUS },
+  { "/name", FLD_NAME2, 0 },
+  { "/type", FLD_TYPE2, 0 },
+  { "/owner", FLD_OWNER, 0 },
+  { "/container", FLD_CONTAINER, 0 },
+  { "/state", FLD_STATE, 0 },
+  { "/country", FLD_COUNTRY, 0 },
+  { "/difficulty", FLD_DIFFICULTY, 0 },
+  { "/terrain", FLD_TERRAIN, 0 },
+  { "/short_description", FLD_SHRT_DESC, FF_CHECK_HTML },
+  { "/long_description", FLD_LONG_DESC, FF_CHECK_HTML },
+  { "/encoded_hints", FLD_HINTS, 0 },
+  { "/logs/log", -1, FF_LOG_ELEM },
+  { "/logs/log/date", FLD_LOG_DATE, 0 },
+  { "/logs/log/type", FLD_LOG_TYPE, 0 },
+  { "/logs/log/finder", FLD_LOG_FINDER, 0 },
+  { "/logs/log/text", FLD_LOG_TEXT, FF_LOG_ENC },
+  { "/logs/log/log_wpt", -1, FF_COORD_LOG },
+  { "/travelbugs/travelbug/name", -1, FF_BUG_NAME },
+  { NULL, 0, 0 }
+};
+
+// TerraCache GPX extensions
+static stPathMap s_TerraMap[] = {
+  { "/name", FLD_NAME2, 0 },
+  { "/owner", FLD_OWNER, 0 },
+  { "/style", FLD_TYPE2, 0 },
+  { "/size", FLD_CONTAINER, FF_TERRA_SIZES },
+  { "/physical_challenge", FLD_TERRAIN, 0 },
+  { "/mental_challenge", FLD_DIFFICULTY, 0 },
+  { "/camo_challenge", FLD_CAMO_DIFF, 0 },
+  { "/country", FLD_COUNTRY, 0 },
+  { "/state", FLD_STATE, 0 },
+  { "/description", FLD_LONG_DESC, FF_FORCE_HTML },
+  { "/hint", FLD_HINTS, FF_FORCE_HTML },
+  { "/logs/log", -1, FF_LOG_ELEM },
+  { "/logs/log/date", FLD_LOG_DATE, 0 },
+  { "/logs/log/type", FLD_LOG_TYPE, 0 },
+  { "/logs/log/user", FLD_LOG_FINDER, 0 },
+  { "/logs/log/entry", FLD_LOG_TEXT, FF_FORCE_HTML },
+  { NULL, 0, 0 }
+};
+
+// GPX extension mapping
+static stExtMap s_ExtMap[] = {
+  { "http://www.groundspeak.com/cache/", 1, "/cache", s_GSMap },
+  { "http://www.terracaching.com/gpx/",	1, "/terracache", s_TerraMap },
+  { "http://geocaching.com.au/geocache/1", 0, "/geocache", s_AUMap },
+  { NULL, 0, NULL }
+};
+
+// GPX/LOC base field mapping
+static stPathMap s_BaseMap[] = {
+  // GPX 1.0
+  { "/gpx", -1, FF_GPX_VERSION },
   { "/gpx/time", -1, FF_TIMESTAMP },
   { "/gpx/wpt", -1, FF_REC_ELEM | FF_COORD_ATTR },
   { "/gpx/wpt/name", FLD_WAYPOINT, 0 },
   { "/gpx/wpt/desc", FLD_NAME, 0 },
+  { "/gpx/wpt/cmt", FLD_COMMENT, 0 },
   { "/gpx/wpt/type", FLD_TYPE, 0 },
   { "/gpx/wpt/time", FLD_DATETIME, 0 },
   { "/gpx/wpt/sym", FLD_SYMBOL, 0 },
   { "/gpx/wpt/url", -1, FF_WPT_URL },
-  { "/gpx/wpt/cache", -1, FF_CACHE_STATUS },
-  { "/gpx/wpt/cache/name", FLD_NAME2, 0 },
-  { "/gpx/wpt/cache/type", FLD_TYPE2, 0 },
-  { "/gpx/wpt/cache/owner", FLD_OWNER, 0 },
-  { "/gpx/wpt/cache/container", FLD_CONTAINER, 0 },
-  { "/gpx/wpt/cache/state", FLD_STATE, 0 },
-  { "/gpx/wpt/cache/country", FLD_COUNTRY, 0 },
-  { "/gpx/wpt/cache/difficulty", FLD_DIFFICULTY, 0 },
-  { "/gpx/wpt/cache/terrain", FLD_TERRAIN, 0 },
-  { "/gpx/wpt/cache/short_description", FLD_SHRT_DESC, FF_SHRT_HTML },
-  { "/gpx/wpt/cache/long_description", FLD_LONG_DESC, FF_LONG_HTML },
-  { "/gpx/wpt/cache/encoded_hints", FLD_HINTS, 0 },
-  { "/gpx/wpt/cache/logs/log", -1, FF_LOG_ELEM },
-  { "/gpx/wpt/cache/logs/log/date", FLD_LOG_DATE, 0 },
-  { "/gpx/wpt/cache/logs/log/type", FLD_LOG_TYPE, 0 },
-  { "/gpx/wpt/cache/logs/log/finder", FLD_LOG_FINDER, 0 },
-  { "/gpx/wpt/cache/logs/log/text", FLD_LOG_TEXT, FF_LOG_ENC },
-  { "/gpx/wpt/cache/logs/log/log_wpt", -1, FF_COORD_LOG },
-  { "/gpx/wpt/cache/travelbugs/travelbug/name", -1, FF_BUG_NAME },
+  // GPX 1.1
+  { "/gpx/metadata/time", -1, FF_TIMESTAMP },
+  { "/gpx/wpt/link", -1, FF_HREF_ATTR },
   // LOC
   { "/loc/waypoint", -1, FF_REC_ELEM | FF_LOC_WARNING },
   { "/loc/waypoint/name", FLD_NAME, FF_WAYPOINT_ID },
@@ -107,17 +163,68 @@ CXMLParser::CXMLParser()
 	m_nCurLogs = 0;
 	m_bHasBugs = 0;
 	m_bLocWarning = 0;
-	m_bUTF8 = 0;
 	m_bEmptyDesc = 1;
 	m_bNonCacheFile = 0;
 	m_bCacheStatus = 0;
 	m_bCacheActive = 1;
 	m_bLongDesc = 0;
+	m_dGpxVer = 0;
+	m_pExtensions = NULL;
+	m_bHtmlFlag = 0;
 
 	m_sCurPath.erase();
 	m_sFileTS.erase();
 
 	ClearWaypoint();
+}
+
+void CXMLParser::CheckForGPXExtensions(const char **attr)
+{
+	if (m_dGpxVer < 1.0)
+		return;
+
+	int bFound = 0;
+	for (int i=0; attr[i]; i+=2)
+	{
+		string sName = attr[i], sVal = attr[i+1];
+		if (sName != "xmlns" && sName.substr(0,6) != "xmlns:")
+			continue;
+
+		CUtil::LowercaseString(sVal);
+
+		stExtMap *pExt = s_ExtMap;
+		while (pExt->szURI)
+		{
+			if (pExt->bPrefix)
+			{
+				if (sVal.substr(0, strlen(pExt->szURI)) ==
+					pExt->szURI)
+				{
+					m_pExtensions = pExt;
+					bFound = 1;
+					break;
+				}
+			}
+			else if (sVal == pExt->szURI)
+			{
+				m_pExtensions = pExt;
+				bFound = 1;
+				break;
+			}
+
+			pExt++;
+		}
+
+		if (bFound)
+			break;
+	}
+
+	if (bFound)
+	{
+		m_sExtBase = (m_dGpxVer > 1.0) ? "/gpx/wpt/extensions" : 
+			"/gpx/wpt";
+		m_sExtBase += m_pExtensions->szExtElem;
+	}
 }
 
 void CXMLParser::GetAttribute(const char **attr, string sName, string &sVal)
@@ -135,18 +242,45 @@ void CXMLParser::GetAttribute(const char **attr, string sName, string &sVal)
 	}
 }
 
-int CXMLParser::GetElementInfo(string sPath, int &rField, int &rFlags)
+int CXMLParser::GetElementInfo(string sPath, int &rField, int32_t &rFlags)
 {
-	int i;
+	stPathMap *pField;
 
-	for (i=0; s_PathMap[i].szName; i++)
+	// Check base field map
+	pField = s_BaseMap;
+	while (pField->szName)
 	{
-		if (sPath == s_PathMap[i].szName)
+		if (sPath == pField->szName)
 		{
-			rField = s_PathMap[i].nField;
-			rFlags = s_PathMap[i].nFlags;
+			rField = pField->nField;
+			rFlags = pField->nFlags;
 			return 1;
 		}
+
+		pField++;
+	}
+
+	if (!m_pExtensions)
+		return 0;	// No extensions discovered... yet
+
+	if (sPath.substr(0, m_sExtBase.size()) != m_sExtBase)
+		return 0;	// Base path doesn't match
+
+	// Check extension field map
+	pField = m_pExtensions->pMap;
+	while (pField->szName)
+	{
+		string sCheck = m_sExtBase;
+		sCheck += pField->szName;
+
+		if (sPath == sCheck)
+		{
+			rField = pField->nField;
+			rFlags = pField->nFlags;
+			return 1;
+		}
+
+		pField++;
 	}
 
 	return 0;
@@ -166,10 +300,25 @@ void CXMLParser::HandleElemStart(void *data, const char *el, const char **attr)
 	pParser->m_sCurPath += '/';
 	pParser->m_sCurPath += elem;
 
-	int bData, nField, nFlags;
-	bData = GetElementInfo(pParser->m_sCurPath, nField, nFlags);
+	if (!pParser->m_pExtensions)
+		pParser->CheckForGPXExtensions(attr);
+
+	int bData, nField;
+	int32_t nFlags;
+	bData = pParser->GetElementInfo(pParser->m_sCurPath, nField, nFlags);
 	if (!bData)
 		return;
+
+	if (nFlags & FF_GPX_VERSION)
+	{
+		string sVer;
+		GetAttribute(attr, "version", sVer);
+		if (!sVer.empty())
+			pParser->m_dGpxVer = strtod(sVer.c_str(), NULL);
+
+		if (!pParser->m_pExtensions)
+			pParser->CheckForGPXExtensions(attr);
+	}
 
 	if (nFlags & FF_REC_ELEM)
 		pParser->ClearWaypoint();
@@ -177,11 +326,15 @@ void CXMLParser::HandleElemStart(void *data, const char *el, const char **attr)
 	if (nFlags & FF_WAYPOINT_ID)
 		GetAttribute(attr, "id", pParser->m_sFields[FLD_WAYPOINT]);
 
-	if (nFlags & FF_LONG_HTML)
-		GetAttribute(attr, "html", pParser->m_sFields[FLD_LONG_HTML]);
+	if (nFlags & FF_CHECK_HTML)
+	{
+		string sVal;
+		GetAttribute(attr, "html", sVal);
+		CUtil::LowercaseString(sVal);
 
-	if (nFlags & FF_SHRT_HTML)
-		GetAttribute(attr, "html", pParser->m_sFields[FLD_SHRT_HTML]);
+		pParser->m_bHtmlFlag = 
+			(sVal == "true" || sVal == "yes" || sVal == "1");
+	}
 
 	if (nFlags & FF_HREF_ATTR)
 	{
@@ -218,10 +371,22 @@ void CXMLParser::HandleElemStart(void *data, const char *el, const char **attr)
 
 	if (nFlags & FF_CACHE_STATUS)
 	{
-		string sAvail, sArchived;
-		GetAttribute(attr, "available", sAvail);
-		GetAttribute(attr, "archived", sArchived);
-		pParser->StoreCacheStatus(sAvail, sArchived);
+		string sStatus;
+		GetAttribute(attr, "status", sStatus);
+
+		if (!sStatus.empty())
+		{	// Geocaching.com.au
+			pParser->m_sFields[FLD_STATUS] = sStatus;
+			pParser->m_bCacheActive =
+				(sStatus == "Available") ? 1 : 0;
+		}
+		else
+		{	// Groundspeak
+			string sAvail, sArchived;
+			GetAttribute(attr, "available", sAvail);
+			GetAttribute(attr, "archived", sArchived);
+			pParser->StoreCacheStatus(sAvail, sArchived);
+		}
 	}
 }
 
@@ -344,18 +509,44 @@ void CXMLParser::DecodeUTF8(string &sStr)
 	sStr = sTmp;
 }
 
+void CXMLParser::TranslateTerraSizes(string &rSize)
+{
+	int nSize = atoi(rSize.c_str());
+	switch (nSize)
+	{
+	case 1: rSize = "Large"; break;
+	case 2: rSize = "Medium"; break;
+	case 3: rSize = "Small"; break;
+	case 4: rSize = "Mini"; break;
+	case 5: rSize = "Micro"; break;
+	}
+}
+
 void CXMLParser::HandleElemEnd(void *data, const char *el)
 {
 	CXMLParser *pParser = (CXMLParser*)data;
 
-	int bData, nField, nFlags;
-	bData = GetElementInfo(pParser->m_sCurPath, nField, nFlags);
-
-	if (pParser->m_bUTF8)
-		pParser->DecodeUTF8(pParser->m_sCurData);
+	int bData, nField;
+	int32_t nFlags;
+	bData = pParser->GetElementInfo(pParser->m_sCurPath, nField, nFlags);
+	pParser->DecodeUTF8(pParser->m_sCurData);
 
 	if (bData)
 	{
+		if (nFlags & FF_FORCE_HTML)
+		{
+			pParser->HTMLToText(pParser->m_sCurData);
+			// TerraCaching.com likes to do weird things with
+			// <br> tags
+			pParser->StripTags(pParser->m_sCurData);
+		}
+
+		if ((nFlags & FF_CHECK_HTML) && pParser->m_bHtmlFlag)
+			pParser->HTMLToText(pParser->m_sCurData);
+
+		if (nFlags & FF_TERRA_SIZES)
+			TranslateTerraSizes(pParser->m_sCurData);
+
 		if (nField != -1)
 			pParser->m_sFields[nField] = pParser->m_sCurData;
 
@@ -466,7 +657,7 @@ void CXMLParser::CompileCacheLog()
 	sLog += "\n";
 
 	// Add the log text (after encoding it, as appropriate)
-	StripWhitespace(m_sFields[FLD_LOG_TEXT]);
+	CUtil::StripWhitespace(m_sFields[FLD_LOG_TEXT]);
 	if (!m_bDecodeHints && (m_sFields[FLD_LOG_ENC] == "True"))
 		EncodeHints(FLD_LOG_TEXT);
 	sLog += m_sFields[FLD_LOG_TEXT];
@@ -483,7 +674,7 @@ void CXMLParser::CompileCacheLog()
 		return;
 
 	StripTags(sLog);
-	StripWhitespace(sLog);
+	CUtil::StripWhitespace(sLog);
 
 	// Append log to list
 	if (!m_sFields[FLD_LOGS].empty())
@@ -507,9 +698,17 @@ void CXMLParser::ClearWaypoint()
 void CXMLParser::AddLinkToRecord(string sURL)
 {
 	string &rWptURL = m_sFields[FLD_URL];
-	if (rWptURL.empty() && (sURL.substr(0,49) == 
-		"http://www.geocaching.com/seek/cache_details.aspx"))
-	{	// Geocaching.com cache page link
+	if (rWptURL.empty() && (
+		sURL.substr(0,49) ==
+			"http://www.geocaching.com/seek/cache_details.aspx" ||
+		sURL.substr(0,37) ==
+			"http://www.terracaching.com/xlink.cgi" ||
+		sURL.substr(0,41) ==
+			"http://www.terracaching.com/viewcache.cgi" ||
+		sURL.substr(0,31) ==
+			"http://geocaching.com.au/cache/"
+	))
+	{	// Detected a cache page link
 		rWptURL = sURL;
 		return;
 	}
@@ -523,12 +722,12 @@ void CXMLParser::ExtractURL(string sTag, string sArgs)
 {
 	int bImg = 0;
 
-	if (sTag == "img")
+	if (sTag == "img" || sTag == "image")
 		bImg = 1;
 	else if (sTag != "a")
 		return;
 
-	StripWhitespace(sArgs);
+	CUtil::StripWhitespace(sArgs);
 
 	// Find URL attribute
 	string sSearch = sArgs;
@@ -539,7 +738,7 @@ void CXMLParser::ExtractURL(string sTag, string sArgs)
 
 	// Extract URL from attribute, stripping quotes if needed
 	string sURL = sArgs.substr(nIndex + (bImg ? 4 : 5));
-	StripWhitespace(sURL);
+	CUtil::StripWhitespace(sURL);
 	char chQuote = ' ';
 	if (sURL[0] == '"' || sURL[0] == '\'')
 	{
@@ -550,8 +749,157 @@ void CXMLParser::ExtractURL(string sTag, string sArgs)
 	if (nIndex != string::npos)
 		sURL = sURL.substr(0, nIndex);
 
-	StripWhitespace(sURL);
+	CUtil::StripWhitespace(sURL);
 	AddLinkToRecord(sURL);
+}
+
+// Map of named HTML entities
+typedef struct stEntMap
+{
+	char *name;
+	uint32_t ch;
+} stEntMap;
+static const stEntMap aEntMap[] = {
+	{ "nbsp", ' ' },
+	{ "gt", '>' },
+	{ "lt", '<' },
+	{ "amp", '&' },
+	{ "quot", '\"' },
+	{ "iexcl", 161 },
+	{ "cent", 162 },
+	{ "pound", 163 },
+	{ "curren", 164 },
+	{ "yen", 165 },
+	{ "brvbar", 166 },
+	{ "sect", 167 },
+	{ "uml", 168 },
+	{ "copy", 169 },
+	{ "ordf", 170 },
+	{ "laquo", 171 },
+	{ "not", 172 },
+	{ "shy", 173 },
+	{ "reg", 174 },
+	{ "macr", 175 },
+	{ "deg", 176 },
+	{ "plusmn", 177 },
+	{ "sup2", 178 },
+	{ "sup3", 179 },
+	{ "acute", 180 },
+	{ "micro", 181 },
+	{ "para", 182 },
+	{ "middot", 183 },
+	{ "cedil", 184 },
+	{ "sup1", 185 },
+	{ "ordm", 186 },
+	{ "raquo", 187 },
+	{ "frac14", 188 },
+	{ "frac12", 189 },
+	{ "frac34", 190 },
+	{ "iquest", 191 },
+	{ "times", 215 },
+	{ "szlig", 223 },
+	{ "agrave", 224 },
+	{ "aacute", 225 },
+	{ "acirc", 226 },
+	{ "atilde", 227 },
+	{ "auml", 228 },
+	{ "aring", 229 },
+	{ "aelig", 230 },
+	{ "ccedil", 231 },
+	{ "egrave", 232 },
+	{ "eacute", 233 },
+	{ "ecirc", 234 },
+	{ "euml", 235 },
+	{ "igrave", 236 },
+	{ "iacute", 237 },
+	{ "icirc", 238 },
+	{ "iuml", 239 },
+	{ "eth", 240 },
+	{ "ntilde", 241 },
+	{ "ograve", 242 },
+	{ "oacute", 243 },
+	{ "ocirc", 244 },
+	{ "otilde", 245 },
+	{ "ouml", 246 },
+	{ "divide", 247 },
+	{ "oslash", 248 },
+	{ "ugrave", 249 },
+	{ "uacute", 250 },
+	{ "ucirc", 251 },
+	{ "uuml", 252 },
+	{ "yacute", 253 },
+	{ "thorn", 254 },
+	{ "yuml", 255 },
+	{ "oelig", 339 },
+	{ "scaron", 353 },
+	{ "fnof", 402 },
+	{ "circ", 710 },
+	{ "tilde", 732 },
+	{ "ndash", 8211 },
+	{ "mdash", 8212 },
+	{ "lsquo", 8216 },
+	{ "rsquo", 8217 },
+	{ "sbquo", 8218 },
+	{ "ldquo", 8220 },
+	{ "rdquo", 8221 },
+	{ "bdquo", 8222 },
+	{ "dagger", 8224 },
+	{ "bull", 8226 },
+	{ "hellip", 8230 },
+	{ "permil", 8240 },
+	{ "lsaquo", 8249 },
+	{ "rsaquo", 8250 },
+	{ "trade", 8482 },
+	{ NULL, 0 }
+};
+
+void CXMLParser::DecodeEntity(string &sEnt, string &sValue)
+{
+	sValue.erase();
+	int nValue = 0;
+
+	const char *pStr = sEnt.c_str();
+	if (*pStr == '#')
+	{
+		if (pStr[1] == 'x')
+			nValue = strtoul(pStr+2, NULL, 16);
+		else
+			nValue = strtoul(pStr+1, NULL, 10);
+	}
+	else
+	{
+		stEntMap *pEnt = (stEntMap*)aEntMap;
+		while (pEnt->name)
+		{
+			if (pEnt->name == sEnt)
+			{
+				nValue = pEnt->ch;
+				break;
+			}
+
+			pEnt++;
+		}
+	}
+
+	if (nValue > 0)
+	{
+		if (nValue >= 256)
+		{
+			stCharMap *pChar = (stCharMap*)aCharMap;
+			while (pChar->ch)
+			{
+				if (pChar->ch == nValue)
+				{
+					sValue = pChar->str;
+					break;
+				}
+
+				pChar++;
+			}
+		}
+		else
+			sValue = (char)nValue;
+	}
 }
 
 void CXMLParser::HTMLToText(string &sStr)
@@ -598,10 +946,16 @@ void CXMLParser::HTMLToText(string &sStr)
 					sResult.substr(nLen-1) == "\n")
 					bNL = 1;
 
+				int bHandled = 1;
 				if (sTag == "p")
 				{
 					if (!bTooMuch)
 						sResult += "\n\n";
+				}
+				else if (sTag == "/p")
+				{
+					if (!bTooMuch)
+						sResult += "\n";
 				}
 				else if (sTag == "br")
 				{
@@ -653,13 +1007,18 @@ void CXMLParser::HTMLToText(string &sStr)
 					if (!bWS)
 						sResult += " ";
 				}
-				else if (sTag == "pre")
+				else
+					bHandled = 0;
+
+				if (bHandled)
+					bWS = 1;
+
+				if (sTag == "pre")
 					bPre = 1;
 				else if (sTag == "/pre")
 					bPre = 0;
 
 				ExtractURL(sTag, sArgs);
-				bWS = 1;
 			}
 			else if (!bTagName)
 			{
@@ -675,23 +1034,16 @@ void CXMLParser::HTMLToText(string &sStr)
 			{
 				bEntity = 0;
 				sResult += "&";
-				sResult += sEntity;
+				sResult += sEntity + ch;
 			}
 			else if (ch == ';')
 			{
+				string sValue;
+
 				bEntity = 0;
 				CUtil::LowercaseString(sEntity);
-
-				if (sEntity == "nbsp")
-					sResult += ' ';
-				else if (sEntity == "gt")
-					sResult += '>';
-				else if (sEntity == "lt")
-					sResult += '<';
-				else if (sEntity == "quot")
-					sResult += '\"';
-				else if (sEntity == "amp")
-					sResult += '&';
+				DecodeEntity(sEntity, sValue);
+				sResult += sValue;
 			}
 			else
 				sEntity += ch;
@@ -794,16 +1146,6 @@ void CXMLParser::ConvertCoords(string &sLat, string &sLon, string &sCoord,
 	sCoord = buf;
 }
 
-void CXMLParser::StripWhitespace(string &rStr)
-{
-	while (strchr(" \t\r\n", rStr[0]) != NULL && rStr.size() > 0)
-		rStr = rStr.substr(1);
-
-	int nLen = rStr.size();
-	while (nLen > 0 && strchr(" \t\r\n", rStr[nLen-1]) != NULL)
-		rStr = rStr.substr(0, --nLen);
-}
-
 void CXMLParser::StripQuotes(string &rStr)
 {
 	int nCount = 0;
@@ -901,7 +1243,7 @@ void CXMLParser::FinishWaypointRecord()
 	int i;
 
 	StripTags(m_sFields[FLD_HINTS]);
-	StripWhitespace(m_sFields[FLD_HINTS]);
+	CUtil::StripWhitespace(m_sFields[FLD_HINTS]);
 	if (!m_bDecodeHints)
 		EncodeHints(FLD_HINTS);
 
@@ -915,29 +1257,21 @@ void CXMLParser::FinishWaypointRecord()
 	for (i=FLD_SHRT_DESC; i<= FLD_LONG_DESC; i++)
 	{
 		string &rDesc = m_sFields[i];
-		string &rHTML = m_sFields[i+2];
 
-		if (!IsWhitespace(rDesc))
-		{
-			if (rHTML == "True")
-			{
-				HTMLToText(rDesc);
-				rHTML = "False";
-			}
+		if (IsWhitespace(rDesc))
+			continue;
 
-			if (IsWhitespace(rDesc))
-				continue;
+		CUtil::StripWhitespace(rDesc);
+		if (i == FLD_SHRT_DESC)
+			rDesc += "\n\n";
 
-			StripWhitespace(rDesc);
-			if (i == FLD_SHRT_DESC)
-				rDesc += "\n\n";
-
-			sDesc += rDesc;
-		}
+		sDesc += rDesc;
 	}
 
 	string &rDesc = m_sFields[FLD_DESC];
 	int bExtra = 0;
+
+	// CM2GPX-supported fields
 
 	if (m_bOwner && !IsWhitespace(m_sFields[FLD_OWNER]))
 	{
@@ -962,10 +1296,13 @@ void CXMLParser::FinishWaypointRecord()
 	}
 
 	if (m_bLocation && (!IsWhitespace(m_sFields[FLD_COUNTRY]) ||
-	    !IsWhitespace(m_sFields[FLD_STATE])))
+		!IsWhitespace(m_sFields[FLD_STATE]) ||
+		!IsWhitespace(m_sFields[FLD_LOCALE])))
 	{
 		rDesc += "Location: ";
 
+		if (!IsWhitespace(m_sFields[FLD_LOCALE]))
+			rDesc += m_sFields[FLD_LOCALE] + ", ";
 		if (!IsWhitespace(m_sFields[FLD_STATE]))
 			rDesc += m_sFields[FLD_STATE] + ", ";
 
@@ -994,10 +1331,23 @@ void CXMLParser::FinishWaypointRecord()
 		bExtra = 1;
 	}
 
+	// New fields
+	int bExtra2 = 0;
+
+	if (!IsWhitespace(m_sFields[FLD_CAMO_DIFF]))
+	{
+		if (!bExtra2)
+			rDesc += "\n";
+
+		rDesc += "Camo challenge: ";
+		rDesc += m_sFields[FLD_CAMO_DIFF] + "\n";
+		bExtra2 = bExtra = 1;
+	}
+
 	if (bExtra)
 		rDesc += "\n";
 
-	StripWhitespace(sDesc);
+	CUtil::StripWhitespace(sDesc);
 	rDesc += sDesc;
 
 	int bDescTrunc = 0;
@@ -1019,17 +1369,22 @@ void CXMLParser::FinishWaypointRecord()
 	if (m_bStripNameQuotes)
 		StripQuotes(m_sFields[FLD_NAME]);
 
-	StripWhitespace(m_sFields[FLD_NAME]);
+	CUtil::StripWhitespace(m_sFields[FLD_NAME]);
 	if (m_sFields[FLD_NAME].empty())
 		m_sFields[FLD_NAME] = "Geocache";
 
 	if (m_bLogTemplate)
-		m_sFields[FLD_NOTES] = "Took: \nLeft: \nTB: ";
+		m_sFields[FLD_NOTES] = "Took: \nLeft: \nTB: \n";
 
 	string sSym = m_sFields[FLD_SYMBOL];
 	CUtil::LowercaseString(sSym);
-	if (sSym != "geocache" && sSym != "geocache found")
-		m_bNonCacheFile = 1;
+	if (sSym.find("geocache") == string::npos)
+	{
+		string sType = m_sFields[FLD_TYPE];
+		CUtil::LowercaseString(sType);
+		if (sType.find("geocache") == string::npos)
+			m_bNonCacheFile = 1;
+	}
 
 	// If GPX description is kind of long and this isn't a cache
 	// file, treat it as the description instead
@@ -1042,6 +1397,18 @@ void CXMLParser::FinishWaypointRecord()
 		rDesc = m_sFields[FLD_NAME];
 		m_sFields[FLD_NAME] = m_sFields[FLD_WAYPOINT];
 	}
+
+	string &rCmt = m_sFields[FLD_COMMENT];
+	CUtil::StripWhitespace(rCmt);
+	if (!rCmt.empty())
+	{
+		if (!rDesc.empty())
+			rDesc += "\n\nGPX Comment: ";
+		rDesc += rCmt;
+	}
+
+	if (m_sFields[FLD_TYPE].substr(0, 9) == "Waypoint|")
+		m_sFields[FLD_TYPE] = m_sFields[FLD_TYPE].substr(9);
 
 	char sep = 1;
 	m_sRecord.erase();
@@ -1120,19 +1487,6 @@ void CXMLParser::CleanCharRefs(char *szBuf)
 	}
 }
 
-void CXMLParser::HandleXmlDecl(void *userData, const char *version,
-	const char *encoding, int standalone)
-{
-	CXMLParser *pParser = (CXMLParser*)userData;
-
-	if (!encoding)
-		return;
-
-	pParser->m_sEncoding = encoding;
-	CUtil::LowercaseString(pParser->m_sEncoding);
-	pParser->m_bUTF8 = (pParser->m_sEncoding == "utf-8");
-}
-
 void CXMLParser::FormatFileTS(string sPath)
 {
 	struct stat info;
@@ -1149,26 +1503,9 @@ void CXMLParser::FormatFileTS(string sPath)
 	m_sFileTS = buf;
 }
 
-int CXMLParser::ParseFile(string sPath)
+int CXMLParser::ParseFile(string sPath, IXMLReader *pReader)
 {
 	int bError = 0;
-	IXMLReader *pReader;
-
-#if HAVE_LIBZ && HAVE_LIBZZIP
-	string sExt = sPath.substr(sPath.size() - 4);
-	CUtil::LowercaseString(sExt);
-	if (sExt == ".zip")
-		pReader = new CZIPReader;
-	else
-#endif
-		pReader = new CXMLReader;
-
-	pReader->m_bQuiet = m_bQuiet;
-	if (!pReader->Open(sPath.c_str()))
-	{
-		printf("Couldn't open file: %s\n", sPath.c_str());
-		return 0;
-	}
 
 	FormatFileTS(sPath);
 
@@ -1183,7 +1520,6 @@ int CXMLParser::ParseFile(string sPath)
 	XML_SetElementHandler(pParser, CXMLParser::HandleElemStart,
 		CXMLParser::HandleElemEnd);
 	XML_SetCharacterDataHandler(pParser, CXMLParser::HandleCharData);
-	XML_SetXmlDeclHandler(pParser, CXMLParser::HandleXmlDecl);
 
 	for (;;)
 	{
@@ -1214,9 +1550,6 @@ int CXMLParser::ParseFile(string sPath)
 	}
 
 	XML_ParserFree(pParser);
-
-	pReader->Close();
-	delete pReader;
 
 	if (m_bLocWarning || m_bNonCacheFile || (m_pList->m_List.size() == 0))
 		m_bEmptyDesc = 0;

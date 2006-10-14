@@ -1,5 +1,5 @@
 /*
-    Copyright 2004 Brian Smith (brian@smittyware.com)
+    Copyright 2004-2005 Brian Smith (brian@smittyware.com)
     This file is part of CMConvert.
     
     CMConvert is free software; you can redistribute it and/or modify   
@@ -24,6 +24,7 @@ class CUtil
 {
 public:
 	static void LowercaseString(string &sStr);
+	static void StripWhitespace(string &rStr);
 };
 
 #endif // _UTIL_H_INCLUDED_

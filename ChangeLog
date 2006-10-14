@@ -1,3 +1,67 @@
+2006-10-14	Version 1.9.5
+
+	* Added support for <cmt> GPX element
+
+2006-07-14
+
+	* Added support for </p> tag (newline, since one is implied)
+
+2006-05-05	Version 1.9.4
+
+	* Better handling of HTML entities
+	* Strip "Waypoint|" from beginning of waypoint type, if present
+	* All GPX files are now read from a given ZIP file, instead of 
+	  only the first
+
+2006-03-06	Version 1.9.3
+
+	* Fixed handling of extended ASCII characters in non-UTF8 files
+	* Fixed handling of Navicache files
+
+2005-06-08	Version 1.9.2
+
+	* Added blank line before new description fields that aren't 
+	  supported by CM2GPX, to keep from confusing its parser.
+
+2005-06-05	Version 1.9.1
+
+	* Added version line to syntax display
+	* Added extra newline at end of took/left notes template
+
+2005-04-01
+
+	* Added support for Geocaching.com.au GPX extensions
+
+2005-03-03	Version 1.9.0
+
+	* Improved efficiency of XML field lookups
+	* Added intelligent handling of GPX waypoint extensions.  Only the 
+	  extension schema needs to be defined in a map, and the parser 
+	  searches for these based on namespace URI and GPX file version.
+
+2005-03-02
+
+	* Added support for TerraCaching.com GPX files
+	* Improved handling of incorrectly escaped HTML characters
+	* Improved handling of HTML tags that don't add whitespace
+	* Added "image" tag support (as opposed to "img" tags... invalid, 
+	  but still used and apparently work in some browsers)
+	* Changed generated HTML to use bulleted lists, to work with 
+	  certain programs where definition lists didn't work so well
+	* Added sorting by waypoint to generated HTML
+
+2004-11-29	Version 1.8.7
+
+	* Made the multi-word options add to, as opposed to replace, 
+	  filters specified earlier in the command line.  This does not 
+	  affect the radius filter.
+	* Added support for "filter files", containing name=value pairs 
+	  corresponding to string filter options.
+
+2004-11-09
+
+	* Updated auto-configure of integer types
+
 2004-09-12	Version 1.8.6
 
 	* Added "excl" command line parameter, for excluding waypoint IDs
@@ -220,7 +284,7 @@
 
 -----
 
-Copyright 2003-2004 Brian Smith
+Copyright 2003-2006 Brian Smith
 
 This file is part of CMConvert.
 

@@ -1,5 +1,5 @@
 /*
-    Copyright 2004 Brian Smith (brian@smittyware.com)
+    Copyright 2004-2006 Brian Smith (brian@smittyware.com)
     This file is part of CMConvert.
     
     CMConvert is free software; you can redistribute it and/or modify   
@@ -26,6 +26,7 @@ class IXMLReader
 public:
 	virtual int Open(const char *szFile) = 0;
 	virtual int Read(char *pBuf, int nLen) = 0;
+	virtual int NextFile() = 0;
 	virtual void Close() = 0;
 
 	int m_bQuiet;
@@ -36,6 +37,7 @@ class CXMLReader : public IXMLReader
 public:
 	virtual int Open(const char *szFile);
 	virtual int Read(char *pBuf, int nLen);
+	virtual int NextFile();
 	virtual void Close();
 
 private:
@@ -44,7 +46,11 @@ private:
 
 #if HAVE_LIBZ && HAVE_LIBZZIP
 extern "C" {
-#include <zzip.h>
+#if HAVE_ZZIP_LIB_H
+# include <zzip/lib.h>
+#else
+# include <zzip.h>
+#endif
 }
 
 class CZIPReader : public IXMLReader
@@ -52,11 +58,13 @@ class CZIPReader : public IXMLReader
 public:
 	virtual int Open(const char *szFile);
 	virtual int Read(char *pBuf, int nLen);
+	virtual int NextFile();
 	virtual void Close();
 
 private:
 	ZZIP_DIR *m_pDir;
 	ZZIP_FILE *m_pFile;
+	string m_sFile;
 };
 #endif
 

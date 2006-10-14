@@ -1,7 +1,7 @@
-.\"(c) Copyright 2003-2004 by Brian Smith
+.\"(c) Copyright 2003-2005 by Brian Smith
 .\"All rights reserved.
 .\"
-.TH CMCONVERT 1 "12 September 2004"
+.TH CMCONVERT 1 "5 June 2005"
 .SH NAME
 cmconvert \- CacheMate waypoint file converter
 .SH SYNOPSIS
@@ -10,14 +10,17 @@ cmconvert \- CacheMate waypoint file converter
 [-N max_log_count] [-o output_file] [-O] [-q] [-s] [-S] [-t] [-T] [-v] 
 [--owner=owner_name] [--country=country] [--state=state] 
 [--cont=container] [--sym=symbol] [--type=cache_type]
-[--excl=waypoint_list] [--radius=distance,lat,lon]  
-[--radius=distance,waypoint] input_file1[,input_file2...] [waypoint ...]
+[--excl=waypoint_list] [--radius=distance,lat,lon]
+[--radius=distance,waypoint] [--filter=filter_file]
+input_file1[,input_file2...] [waypoint ...]
 .SH DESCRIPTION
 .B cmconvert
-is a file converter, which takes one or more EasyGPS LOC or GPX XML files
-as input and outputs a Palm database file that CacheMate (a geocaching
-database for Palm OS) can import.  GPX file extensions specific to
-Geocaching.com are converted as well.
+is a file converter, which takes one or more EasyGPS LOC or GPX XML files 
+as input and outputs a Palm database file that CacheMate (a geocaching 
+database for Palm OS) can import.  GPX file extensions specific to 
+Geocaching.com, Geocaching.com.au and TerraCaching.com are converted as 
+well.  These extensions are referred to as "site-specific" features 
+throughout this document.
 .LP
 Selection of waypoints to convert (and later import) is possible by
 specifying the waypoint names on the command line after the input file.  
@@ -27,18 +30,19 @@ using the filtering options documented below.
 .SH OPTIONS
 .TP
 .B \-B
-Includes travel bug names from Geocaching.com GPX file in description 
+Includes travel bug names from Geocaching.com GPX files in the description 
 field.
 .TP
 .B \-C
-Includes container type from Geocaching.com GPX file in description field.
+Includes container type/size from site-specific GPX files in the
+description field.
 .TP
 .B \-d
 Changes the maximum description length from 3090 to 8192 bytes, for 
 CacheMate 2.1 or later (may cause problems with earlier versions).
 .TP
 .B \-D
-Includes date information from GPX file in description field, if 
+Includes date information from GPX files in the description field, if 
 available.
 .TP
 .B \-h
@@ -46,11 +50,10 @@ Generates an HTML file, name based on the output PDB file name, which
 contains URLs for any links and images found in HTML descriptions for
 records that are converted.  The file will contain links to the cache page
 and any contained links for caches that have them (plain text descriptions
-and HTML descriptions that are just text are omitted).  This option only
-has any meaning when converting GPX files from Geocaching.com.
+and HTML descriptions that are just text are omitted).
 .TP
 .B \-H
-Prevents the encoding of hint text from Geocaching.com GPX files.
+Prevents the encoding of hint text from site-specific GPX files.
 .TP
 .B \-l
 Lists waypoints names from input file, along with description, terrain and
@@ -58,11 +61,11 @@ difficulty information if available.  If any filters are in place or
 waypoint names are specified, only those that are selected will be listed.
 .TP
 .B \-L
-Includes cache location (state/province and/or country) from
-Geocaching.com GPX file in description field.
+Includes cache location (state/province and/or country) from site-specific 
+GPX files in the description field.
 .TP
 .BI \-N " max_log_count"
-If specified with a count of at least 1, cache logs from a Geocaching.com
+If specified with a count of at least 1, cache logs from a site-specific
 GPX file will be imported, until one of three per-cache limits is reached:
 specified log count, number of logs in the record, or 8k of log
 information.  Each log entry is trimmed to 3k in size, if it is larger
@@ -76,7 +79,8 @@ with a
 extension.
 .TP
 .B \-O
-Includes cache owner from Geocaching.com GPX file in description field.
+Includes cache owner from site-specific GPX files in the description 
+field.
 .TP
 .B \-q
 Suppresses all output except error messages.
@@ -85,7 +89,7 @@ Suppresses all output except error messages.
 Causes the parser to semi-intelligently strip quotes from cache names.
 .TP
 .B \-S
-Includes cache status (active/inactive) from Geocaching.com GPX file in 
+Includes cache status (active/inactive) from site-specific GPX files in 
 description field.
 .TP
 .B \-t
@@ -112,16 +116,17 @@ input file is in GPX format and contains a file-level timestamp, that will
 be used.  Otherwise, the last-modified time of the file is used.
 .SH FILTERING OPTIONS
 The following options may be used to select waypoints for conversion based 
-on certain critera.  Most of the options only apply if a Geocaching.com 
-GPX file is being converted, and may otherwise result in no waypoints 
-being converted.
+on certain critera.  Most of the options only apply if supported 
+site-specific information is in the GPX file being converted, and may 
+otherwise result in no waypoints being converted.
 .LP
 Filters that use an argument, except for radius filters, do a
 case-insensitive search of the corresponding field for a match, to make
 them forgiving of incorrect case and allow for partial search strings.  
 For example, a cache type filter of "event" will match the text "Event
 Cache" from the GPX file.  Multiple search strings are also possible, when
-separated by colons (:).
+separated by colons (:).  Specifying one of these options more than once
+will add strings to that filter, instead of replacing it.
 .LP
 All filtering options, including waypoints specified on the command line,
 are additive in their effects.  For example, a search combining the
@@ -129,9 +134,9 @@ are additive in their effects.  For example, a search combining the
 result in no records being converted.
 .TP
 .B \-a
-Selects only caches that are active, according to information in 
-Geocaching.com GPX files.  If this information is not present in the input 
-file (as with LOC files), the cache is assumed to be active.
+Selects only caches that are active, according to site-specific 
+information in the GPX files.  If this information is not present in the 
+input file (as with LOC files), the cache is assumed to be active.
 .TP
 .B \-A
 Selects only caches that are inactive, using the same criteria as the -a 
@@ -177,6 +182,26 @@ expressed in the same way as the more explicit radius filter.
 .TP
 .BI \--excl= waypoint_list
 Allows an exclusion filter on waypoint names.
+.TP
+.BI \--filter= filter_file
+Specifies a file from which to read name/value pairs, in the format
+\fBname=value\fP, which correspond to any of the string/radius filter
+types.  The options in the filter file will be applied as if they were
+expanded into command-line arguments where this option is specified.
+.SH TERRACACHING.COM SUPPORT
+Most fields in GPX files from TerraCaching.com are mapped to their 
+equivalent CacheMate fields, which are based on those used by 
+Geocaching.com.  Some that may not be so obvious are:
+.LP
+.RS +4
+Mental challenge -> Difficulty
+.RE
+.RS +4
+Physical challenge -> Terrain
+.RE
+.LP
+The "camo challenge" rating is prepended to the description text, if 
+present.
 .SH EXAMPLES
 The following are various examples of cmconvert with different filtering 
 options.

@@ -1,5 +1,5 @@
 /*
-    Copyright 2004 Brian Smith (brian@smittyware.com)
+    Copyright 2004-2005 Brian Smith (brian@smittyware.com)
     This file is part of CMConvert.
     
     CMConvert is free software; you can redistribute it and/or modify   
@@ -30,4 +30,14 @@ void CUtil::LowercaseString(string &sStr)
                 if (ch >= 'A' && ch <= 'Z')
                         sStr[n] = ch - 'A' + 'a';
         }
+}
+
+void CUtil::StripWhitespace(string &rStr)
+{
+        while (strchr(" \t\r\n", rStr[0]) != NULL && rStr.size() > 0)
+                rStr = rStr.substr(1);
+
+        int nLen = rStr.size();
+        while (nLen > 0 && strchr(" \t\r\n", rStr[nLen-1]) != NULL)
+                rStr = rStr.substr(0, --nLen);
 }

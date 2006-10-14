@@ -63,6 +63,9 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
+/* Define to 1 if you have the <zzip/lib.h> header file. */
+#undef HAVE_ZZIP_LIB_H
+
 /* Name of package */
 #undef PACKAGE
 
@@ -81,8 +84,17 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
+/* The number of bytes in type char */
+#undef SIZEOF_CHAR
+
+/* The number of bytes in type int */
+#undef SIZEOF_INT
+
 /* The number of bytes in type long */
 #undef SIZEOF_LONG
+
+/* The number of bytes in type short */
+#undef SIZEOF_SHORT
 
 /* The number of bytes in type void* */
 #undef SIZEOF_VOIDP

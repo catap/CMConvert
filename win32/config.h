@@ -1,5 +1,5 @@
 /*
-    Copyright 2004 Brian Smith (brian@smittyware.com)
+    Copyright 2004-2006 Brian Smith (brian@smittyware.com)
     This file is part of CMConvert.
 
     CMConvert is free software; you can redistribute it and/or modify
@@ -92,7 +92,7 @@
 #undef PACKAGE_NAME
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "CMConvert 1.8.6"
+#define PACKAGE_STRING "CMConvert 1.9.5"
 
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME

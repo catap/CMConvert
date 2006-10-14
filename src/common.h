@@ -1,5 +1,5 @@
 /*
-    Copyright 2003-2004 Brian Smith (brian@smittyware.com)
+    Copyright 2003-2005 Brian Smith (brian@smittyware.com)
     This file is part of CMConvert.
 
     CMConvert is free software; you can redistribute it and/or modify
@@ -91,6 +91,8 @@ char *strchr (), *strrchr ();
 #include "cmconvert-stdint.h"
 
 #include <string>
+#include <vector>
+#include <algorithm>
 using namespace std;
 
 #ifdef WIN32_BUILD
