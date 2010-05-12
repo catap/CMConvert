@@ -1,3 +1,8 @@
+2010-05-12	Version 1.9.6
+
+	* Added support for Groundspeak's cache attributes
+	* Removed option for long description text - it is now always on
+
 2006-10-14	Version 1.9.5
 
 	* Added support for <cmt> GPX element
@@ -284,7 +289,7 @@
 
 -----
 
-Copyright 2003-2006 Brian Smith
+Copyright 2003-2010 Brian Smith
 
 This file is part of CMConvert.
 

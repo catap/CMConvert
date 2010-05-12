@@ -1,5 +1,5 @@
 /*
-    Copyright 2003-2006 Brian Smith (brian@smittyware.com)
+    Copyright 2003-2010 Brian Smith (brian@smittyware.com)
     This file is part of CMConvert.
     
     CMConvert is free software; you can redistribute it and/or modify   
@@ -182,7 +182,7 @@ int ParseCommandLine(int argc, char **argv)
 	bLocation = 0;
 	bShowBugs = 0;
 	nMaxLogs = 0;
-	nMaxDesc = 3090;
+	nMaxDesc = 8192;
 	bSymFound = 0;
 	bSymNotFound = 0;
 	bDecodeHints = 0;
@@ -240,7 +240,7 @@ int ParseCommandLine(int argc, char **argv)
 		case 'B':	bShowBugs = 1; break;
 		case 'C':	bContainer = 1; break;
 		case 'D':	bDate = 1; break;
-		case 'd':	nMaxDesc = 8192; break;
+		case 'd':	break;
 		case 'f':	bSymFound = 1; break;
 		case 'F':	bSymNotFound = 1; break;
 		case 'h':	bWriteHTML = 1; break;
@@ -305,13 +305,13 @@ int PrintVersion()
 #if HAVE_LIBZ && HAVE_LIBZZIP
 		"+zip"
 #endif
-		" -- Copyright (C) 2003-2006 Brian Smith\n");
+		" -- Copyright (C) 2003-2010 Brian Smith\n");
 	return 0;
 }
 
 int PrintUsage(char *szExe)
 {
-        printf("Usage: %s [-a] [-A] [-b] [-B] [-C] [-d] [-D] [-f] [-F] [-h] [-H]\n"
+        printf("Usage: %s [-a] [-A] [-b] [-B] [-C] [-D] [-f] [-F] [-h] [-H]\n"
 	"\t[-l] [-L] [-N max_log_count] [-o output_file] [-O] [-q] [-s] [-S]\n"
 	"\t[-t] [-T] [-v] [--cont=container] [--country=country] [--sym=symbol]\n" 
 	"\t[--state=state] [--owner=cache_owner] [--type=cache_type]\n"

@@ -1,12 +1,12 @@
-.\"(c) Copyright 2003-2005 by Brian Smith
+.\"(c) Copyright 2003-2010 by Brian Smith
 .\"All rights reserved.
 .\"
-.TH CMCONVERT 1 "5 June 2005"
+.TH CMCONVERT 1 "12 May 2010"
 .SH NAME
 cmconvert \- CacheMate waypoint file converter
 .SH SYNOPSIS
 .B cmconvert
-[-a] [-A] [-b] [-B] [-C] [-d] [-D] [-f] [-F] [-h] [-H] [-l] [-L]
+[-a] [-A] [-b] [-B] [-C] [-D] [-f] [-F] [-h] [-H] [-l] [-L]
 [-N max_log_count] [-o output_file] [-O] [-q] [-s] [-S] [-t] [-T] [-v] 
 [--owner=owner_name] [--country=country] [--state=state] 
 [--cont=container] [--sym=symbol] [--type=cache_type]
@@ -36,10 +36,6 @@ field.
 .B \-C
 Includes container type/size from site-specific GPX files in the
 description field.
-.TP
-.B \-d
-Changes the maximum description length from 3090 to 8192 bytes, for 
-CacheMate 2.1 or later (may cause problems with earlier versions).
 .TP
 .B \-D
 Includes date information from GPX files in the description field, if 

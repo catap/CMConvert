@@ -1,5 +1,5 @@
 /*
-    Copyright 2003-2006 Brian Smith (brian@smittyware.com)
+    Copyright 2003-2010 Brian Smith (brian@smittyware.com)
     This file is part of CMConvert.
     
     CMConvert is free software; you can redistribute it and/or modify   
@@ -62,9 +62,10 @@
 #define FLD_CAMO_DIFF	33
 #define FLD_LOCALE	34
 #define FLD_COMMENT	35
+#define FLD_CACHE_ATTR	36
 
 #define MAX_END_FIELDS	10
-#define MAX_MID_FIELDS	36
+#define MAX_MID_FIELDS	37
 
 // XPath-to-field mapping
 typedef struct
@@ -125,6 +126,7 @@ private:
 	int m_bLongDesc;
 	double m_dGpxVer;
 	stExtMap *m_pExtensions;
+	int m_bInclAttr;
 	int m_bHtmlFlag;
 	string m_sExtBase;
 

@@ -1,5 +1,5 @@
 /*
-    Copyright 2003-2006 Brian Smith (brian@smittyware.com)
+    Copyright 2003-2010 Brian Smith (brian@smittyware.com)
     This file is part of CMConvert.
     
     CMConvert is free software; you can redistribute it and/or modify   
@@ -43,6 +43,7 @@ extern "C" {
 #define FF_WPT_URL	8192	// Waypoint URL (GPX 1.0)
 #define FF_TERRA_SIZES	16384	// Map TerraCaching size number to string
 #define FF_GPX_VERSION	32768	// GPX version attribute
+#define FF_CACHE_ATTR	65536	// GC.com cache attribute
 
 // Geocaching.com.au GPX extensions
 static stPathMap s_AUMap[] = {
@@ -89,6 +90,7 @@ static stPathMap s_GSMap[] = {
   { "/logs/log/text", FLD_LOG_TEXT, FF_LOG_ENC },
   { "/logs/log/log_wpt", -1, FF_COORD_LOG },
   { "/travelbugs/travelbug/name", -1, FF_BUG_NAME },
+  { "/attributes/attribute", -1, FF_CACHE_ATTR },
   { NULL, 0, 0 }
 };
 
@@ -170,6 +172,7 @@ CXMLParser::CXMLParser()
 	m_bLongDesc = 0;
 	m_dGpxVer = 0;
 	m_pExtensions = NULL;
+	m_bInclAttr = 0;
 	m_bHtmlFlag = 0;
 
 	m_sCurPath.erase();
@@ -388,6 +391,13 @@ void CXMLParser::HandleElemStart(void *data, const char *el, const char **attr)
 			pParser->StoreCacheStatus(sAvail, sArchived);
 		}
 	}
+
+	if (nFlags & FF_CACHE_ATTR)
+	{
+		string sInc;
+		GetAttribute(attr, "inc", sInc);
+		pParser->m_bInclAttr = (sInc != "0");
+	}
 }
 
 // Map of redundant Unicode characters
@@ -549,6 +559,19 @@ void CXMLParser::HandleElemEnd(void *data, const char *el)
 
 		if (nField != -1)
 			pParser->m_sFields[nField] = pParser->m_sCurData;
+
+		if (nFlags & FF_CACHE_ATTR)
+		{
+			if (!pParser->m_sCurData.empty())
+			{
+				string &rList = pParser->m_sFields[FLD_CACHE_ATTR];
+				if (!rList.empty())
+					rList += ", ";
+				if (!pParser->m_bInclAttr)
+					rList += "NOT ";
+				rList += pParser->m_sCurData;
+			}
+		}
 
 		if (nFlags & FF_REC_ELEM)
 			pParser->FinishWaypointRecord();
@@ -1331,6 +1354,13 @@ void CXMLParser::FinishWaypointRecord()
 		bExtra = 1;
 	}
 
+	if (!IsWhitespace(m_sFields[FLD_CACHE_ATTR]))
+	{
+		rDesc += "Attributes: ";
+		rDesc += m_sFields[FLD_CACHE_ATTR] + "\n";
+		bExtra = 1;
+	}
+
 	// New fields
 	int bExtra2 = 0;
 
@@ -1540,7 +1570,7 @@ int CXMLParser::ParseFile(string sPath, IXMLReader *pReader)
 		{
 			bError = 1;
 			printf("Parse error at line %d:\n%s\n",
-				XML_GetCurrentLineNumber(pParser),
+				(int)XML_GetCurrentLineNumber(pParser),
 				XML_ErrorString(XML_GetErrorCode(pParser)));
 			break;
 		}
