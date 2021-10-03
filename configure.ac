@@ -17,12 +17,11 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 # 02111-1307, USA.
 
-AC_PREREQ(2.57)
+AC_PREREQ([2.71])
 AC_INIT([CMConvert],[1.9.6],[support@smittyware.com])
 AC_CONFIG_SRCDIR([config.h.in])
-AC_CONFIG_AUX_DIR([config])
 AM_INIT_AUTOMAKE(foreign)
-AC_CONFIG_HEADER([config.h])
+AC_CONFIG_HEADERS([config.h])
 AC_REVISION($Revision: 1.3 $)
 
 # Checks for programs.
@@ -31,8 +30,29 @@ AC_PROG_CXX
 AC_PROG_CC
 
 # Checks for header files.
-AC_HEADER_STDC
-AC_HEADER_TIME
+m4_warn([obsolete],
+[The preprocessor macro `STDC_HEADERS' is obsolete.
+  Except in unusual embedded environments, you can safely include all
+  ISO C90 headers unconditionally.])dnl
+# Autoupdate added the next two lines to ensure that your configure
+# script's behavior did not change.  They are probably safe to remove.
+AC_CHECK_INCLUDES_DEFAULT
+AC_PROG_EGREP
+
+m4_warn([obsolete],
+[Update your code to rely only on HAVE_SYS_TIME_H,
+then remove this warning and the obsolete code below it.
+All current systems provide time.h; it need not be checked for.
+Not all systems provide sys/time.h, but those that do, all allow
+you to include it and time.h simultaneously.])dnl
+AC_CHECK_HEADERS_ONCE([sys/time.h])
+# Obsolete code to be removed.
+if test $ac_cv_header_sys_time_h = yes; then
+  AC_DEFINE([TIME_WITH_SYS_TIME],[1],[Define to 1 if you can safely include both <sys/time.h>
+	     and <time.h>.  This macro is obsolete.])
+fi
+# End of obsolete code.
+
 AC_CHECK_HEADERS([fcntl.h stddef.h locale.h zzip/lib.h])
 AC_CREATE_STDINT_H(src/cmconvert-stdint.h)
 
@@ -69,4 +89,5 @@ AC_CHECK_LIB(m, sin)
 AC_CHECK_FUNCS([memset memcpy strchr setlocale])
 AC_FUNC_STRFTIME
 
-AC_OUTPUT([Makefile src/Makefile man/Makefile config/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile man/Makefile])
+AC_OUTPUT
