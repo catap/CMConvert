@@ -404,7 +404,7 @@ void CXMLParser::HandleElemStart(void *data, const char *el, const char **attr)
 typedef struct stCharMap
 {
 	uint32_t ch;
-	char *str;
+	const char *str;
 } stCharMap;
 static const stCharMap aCharMap[] = {
 	{ 0x0152, "\x8c" },
@@ -779,7 +779,7 @@ void CXMLParser::ExtractURL(string sTag, string sArgs)
 // Map of named HTML entities
 typedef struct stEntMap
 {
-	char *name;
+	const char *name;
 	uint32_t ch;
 } stEntMap;
 static const stEntMap aEntMap[] = {
@@ -1104,8 +1104,8 @@ void CXMLParser::HTMLToText(string &sStr)
 
 void CXMLParser::EncodeHints(int nField)
 {
-	static char *szLower13 = "nopqrstuvwxyzabcdefghijklm";
-	static char *szUpper13 = "NOPQRSTUVWXYZABCDEFGHIJKLM";
+	static const char *szLower13 = "nopqrstuvwxyzabcdefghijklm";
+	static const char *szUpper13 = "NOPQRSTUVWXYZABCDEFGHIJKLM";
 	int bImmune = 0;
 	int n;
 
@@ -1163,7 +1163,7 @@ void CXMLParser::ConvertCoords(string &sLat, string &sLon, string &sCoord,
 	dLonM -= dLonD;
 	dLonM *= 60;
 
-	sprintf(buf, "%c %d° %06.3f %c %03d° %06.3f",
+	sprintf(buf, "%c %d\xB0 %06.3f %c %03d\xB0 %06.3f",
 		bSouthLat ? 'S' : 'N', (int)dLatD, dLatM,
 		bWestLon ? 'W' : 'E', (int)dLonD, dLonM);
 	sCoord = buf;

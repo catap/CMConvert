@@ -338,9 +338,9 @@ int CheckPDBStructSizes()
 	{
 		printf("PDB structure sizes incorrect!  "
 			"Conversion aborted.\n");
-		printf("Header size = %d (must be 80)\n",
+		printf("Header size = %zu (must be 80)\n",
 			sizeof(PDBHeader));
-		printf("Record entry size = %d (must be 8)\n",
+		printf("Record entry size = %zu (must be 8)\n",
 			sizeof(PDBRecordEntry));
 	}
 

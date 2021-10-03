@@ -70,7 +70,7 @@
 // XPath-to-field mapping
 typedef struct
 {
-	char *szName;
+	const char *szName;
 	int nField;
 	int32_t nFlags;
 } stPathMap;
@@ -78,9 +78,9 @@ typedef struct
 // NamespaceURL-to-PathMap mapping
 typedef struct
 {
-	char *szURI;
+	const char *szURI;
 	int bPrefix;
-	char *szExtElem;
+	const char *szExtElem;
 	stPathMap *pMap;
 } stExtMap;
 

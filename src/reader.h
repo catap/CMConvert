@@ -29,6 +29,10 @@ public:
 	virtual int NextFile() = 0;
 	virtual void Close() = 0;
 
+	virtual ~IXMLReader() {
+
+	}
+
 	int m_bQuiet;
 };
 
