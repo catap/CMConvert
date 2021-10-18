@@ -24,8 +24,8 @@
 
 time_t mkgmtime(struct tm *t)
 {
-	register short	month, year;
-	register time_t	result;
+	short	month, year;
+	time_t	result;
 	static int	m_to_d[12] =
 		{0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
 
