@@ -27,7 +27,7 @@ typedef uint32_t UInt32;
 typedef UInt32 LocalID;
 
 #ifdef __GNUC__
-# define PACKED __attribute__ ((__packed__));
+# define PACKED __attribute__ ((__packed__))
 #else
 # define PACKED
 # ifdef WIN32_BUILD
@@ -37,35 +37,35 @@ typedef UInt32 LocalID;
 # endif
 #endif
 
-typedef struct _PDBRecordList
+typedef struct PACKED _PDBRecordList
 {
-	LocalID nextRecordListID PACKED;
-	UInt16 numRecords PACKED;
-	UInt16 dummy PACKED;
+	LocalID nextRecordListID;
+	UInt16 numRecords;
+	UInt16 dummy;
 } PDBRecordList;
 
-typedef struct
+typedef struct PACKED
 {
-	UInt8 name[32] PACKED;
-	UInt16 attributes PACKED;
-	UInt16 version PACKED;
-	UInt32 creationDate PACKED;
-	UInt32 modificationDate PACKED;
-	UInt32 lastBackupDate PACKED;
-	UInt32 modificationNumber PACKED;
-	LocalID appInfoID PACKED;
-	LocalID sortInfoID PACKED;
-	UInt32 type PACKED;
-	UInt32 creator PACKED;
-	UInt32 uniqueIDSeed PACKED;
-	PDBRecordList recordList PACKED;
+	UInt8 name[32];
+	UInt16 attributes;
+	UInt16 version;
+	UInt32 creationDate;
+	UInt32 modificationDate;
+	UInt32 lastBackupDate;
+	UInt32 modificationNumber;
+	LocalID appInfoID;
+	LocalID sortInfoID;
+	UInt32 type;
+	UInt32 creator;
+	UInt32 uniqueIDSeed;
+	PDBRecordList recordList;
 } PDBHeader;
 
-typedef struct
+typedef struct PACKED
 {
-	LocalID localChunkID PACKED;
-	UInt8 attributes PACKED;
-	UInt8 uniqueID[3] PACKED;
+	LocalID localChunkID;
+	UInt8 attributes;
+	UInt8 uniqueID[3];
 } PDBRecordEntry;
 
 #ifndef __GNUC__
