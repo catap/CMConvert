@@ -1,3 +1,7 @@
+unrelease
+	* Fixed build on UTF-8 environment
+	* Produce working pdp on Apple M1
+
 2010-05-12	Version 1.9.6
 
 	* Added support for Groundspeak's cache attributes
